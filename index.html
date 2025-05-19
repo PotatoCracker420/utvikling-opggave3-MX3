@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BilligBil AS</title>
+  <style>
+    body { font-family: Arial; background: #eee; margin: 0; }
+    .container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
+    .card {
+      background: white; padding: 15px; border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 300px;
+    }
+    .card img { width: 100%; border-radius: 10px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1 style="text-align:center;">BilligBil AS – Våre biler</h1>
+  <div class="container" id="bilContainer"></div>
+  <h2 style="text-align:center;">Legg til ny bil</h2>
+<form id="bilSkjema" style="max-width:400px; margin:auto;">
+  <input type="text" id="navn" placeholder="Navn" required><br><br>
+  <input type="text" id="merke" placeholder="Merke" required><br><br>
+  <input type="text" id="modell" placeholder="Modell" required><br><br>
+  <input type="number" id="km" placeholder="Kilometerstand" required><br><br>
+  <button type="submit">Legg til bil</button>
+</form>
+
+<hr style="margin: 40px 0;">
+
+
+<hr style="margin: 40px 0;">
+
+
+  <script>
+    // 🔑 Dine Supabase-nøkler
+    const SUPABASE_URL = 'https://xyzcompany.supabase.co'; // <-- erstatt med din URL
+    const SUPABASE_ANON_KEY = 'your-anon-key-here';        // <-- erstatt med din anon nøkkel
+
+    // 🚀 Initialiser Supabase
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const container = document.getElementById('bilContainer');
+
+    async function hentBiler() {
+      const { data, error } = await supabase.from('Bil').select('*');
+
+      if (error) {
+        container.innerHTML = '<p>Kunne ikke hente data.</p>';
+        console.error(error);
+        return;
+      }
+
+      data.forEach(bil => {
+        container.innerHTML += `
+          <div class="card">
+            <img src="${bil.lenke_til_bilde}" alt="${bil.navn}">
+            <h2>${bil.navn}</h2>
+            <p>Merke: ${bil.merke}</p>
+            <p>Modell: ${bil.modell}</p>
+            <p>Kilometerstand: ${bil.kilometerstand}</p>
+          </div>
+        `;
+      });
+    }
+
+    hentBiler();
+    document.getElementById('bilSkjema').addEventListener('submit', async function(e) {
+  e.preventDefault(); // Hindrer at siden lastes på nytt
+
+  // Hent verdier fra skjemaet
+ const nyBil = {
+  navn: document.getElementById('navn').value,
+  merke: document.getElementById('merke').value,
+  modell: document.getElementById('modell').value,
+  kilometerstand: parseInt(document.getElementById('km').value, 10)
+};
+
+
+  // Lagre i Supabase
+  const { data, error } = await supabase.from('Bil').insert([nyBil]);
+
+  if (error) {
+    alert('Feil ved lagring: ' + error.message);
+    console.error(error);
+  } else {
+    alert('Bil lagt til!');
+    container.innerHTML = ''; // Tøm liste
+    hentBiler(); // Vis oppdatert liste
+    e.target.reset(); // Tøm skjema
+  }
+});
+
+  </script>
+</body>
+</html>
